@@ -449,10 +449,32 @@ def train_model(args: Union[argparse.Namespace, None], rank=None, world_size=Non
 
         if should_print:
             save_last_weights(args, model, device_ids, optimizer, epoch, all_time_all_metrics, all_losses, best_metric, scheduler)
-        if ddp:
-            metrics_avg, all_metrics = valid_multi_gpu(model, args, config, args.device_ids, verbose=False)
-            if rank == 0:
-                all_time_all_metrics[f"epoch_{epoch}"] = all_metrics
+
+        valid_every = getattr(args, 'valid_every', 1)
+        run_validation = ((epoch + 1) % valid_every == 0) or (epoch == config.training.num_epochs - 1)
+
+        if run_validation:
+            if ddp:
+                metrics_avg, all_metrics = valid_multi_gpu(model, args, config, args.device_ids, verbose=False)
+                if rank == 0:
+                    all_time_all_metrics[f"epoch_{epoch}"] = all_metrics
+                    best_metric = compute_epoch_metrics(
+                        model=model,
+                        args=args,
+                        config=config,
+                        device=device,
+                        device_ids=device_ids,
+                        best_metric=best_metric,
+                        epoch=epoch,
+                        scheduler=scheduler,
+                        optimizer=optimizer,
+                        all_time_all_metrics=all_time_all_metrics,
+                        all_losses=all_losses,
+                        world_size=world_size,
+                        metrics_avg=metrics_avg,
+                        all_metrics=all_metrics
+                    )
+            else:
                 best_metric = compute_epoch_metrics(
                     model=model,
                     args=args,
@@ -465,24 +487,10 @@ def train_model(args: Union[argparse.Namespace, None], rank=None, world_size=Non
                     optimizer=optimizer,
                     all_time_all_metrics=all_time_all_metrics,
                     all_losses=all_losses,
-                    world_size=world_size,
-                    metrics_avg=metrics_avg,
-                    all_metrics=all_metrics
                 )
         else:
-            best_metric = compute_epoch_metrics(
-                model=model,
-                args=args,
-                config=config,
-                device=device,
-                device_ids=device_ids,
-                best_metric=best_metric,
-                epoch=epoch,
-                scheduler=scheduler,
-                optimizer=optimizer,
-                all_time_all_metrics=all_time_all_metrics,
-                all_losses=all_losses,
-            )
+            if should_print:
+                print(f'Skipping validation (valid_every={valid_every}, epoch={epoch})')
 
 
 if __name__ == "__main__":
