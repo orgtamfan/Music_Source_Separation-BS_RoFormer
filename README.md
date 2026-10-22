@@ -122,7 +122,8 @@ results/
 ├── validation/     # validation metrics
 ├── inference/      # separated audio stems
 ├── experiments/    # short experiments
-└── runs/           # local archived runs
+├── checkpoints/    # archived model checkpoints
+└── metadata/       # model summaries and run metadata
 ```
 
 Git ignores generated files in `results/` so checkpoints, audio, and

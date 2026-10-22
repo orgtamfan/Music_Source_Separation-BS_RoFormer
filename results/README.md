@@ -1,14 +1,17 @@
-# Struktur output
+# Output directory layout
 
-Gunakan folder berikut untuk memisahkan artefak tiap alur kerja:
+Keep generated artifacts grouped by workflow:
 
-- `training/` — checkpoint dan log untuk run baru.
-- `validation/` — ringkasan metrik dan hasil validasi.
-- `inference/` — audio stem hasil pemisahan.
-- `experiments/` — output uji coba singkat atau konfigurasi eksperimental.
-- `runs/` — arsip run yang sudah selesai serta metadata model.
+- `training/` — checkpoints and logs for new training runs.
+- `validation/` — validation metrics and reports.
+- `inference/` — separated audio stems.
+- `experiments/` — short trials and experiment-specific outputs.
+- `checkpoints/archive_<date>/` — archived checkpoints from completed runs.
+- `metadata/` — model summaries and run metadata.
 
-Checkpoint lama dipindahkan tanpa dihapus ke `runs/archive_2026-10-22/`.
-`runs/model_info.json` menyimpan informasi model dari run tersebut. Folder
-output dan checkpoint diabaikan Git karena ukurannya besar; file README ini
-tetap dilacak.
+The previous run's checkpoints are preserved in
+`checkpoints/archive_2026-10-22/`. Its model summary is in `metadata/`.
+
+Git ignores generated files in this directory because model checkpoints and
+audio outputs can be very large. This README remains tracked to document the
+layout.
